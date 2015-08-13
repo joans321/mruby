@@ -11,26 +11,26 @@
 MRuby::Toolchain.new(:androideabi) do |conf|
   toolchain :gcc
 
-  DEFAULT_ANDROID_TOOLCHAIN   = 'gcc'
-  DEFAULT_ANDROID_TARGET_ARCH = 'arm'
-  DEFAULT_ANDROID_TARGET_ARCH_ABI = 'armeabi'
-  DEFAULT_ANDROID_TARGET_PLATFORM = 'android-14'
-  DEFAULT_GCC_VERSION   = '4.6'
-  DEFAULT_CLANG_VERSION = '3.1'
-  GCC_COMMON_CFLAGS  = %W(-ffunction-sections -funwind-tables -fstack-protector)
-  GCC_COMMON_LDFLAGS = %W()
+  default_android_toolchain   = 'gcc'
+  default_android_target_arch = 'arm'
+  default_android_target_arch_abi = 'armeabi'
+  default_android_target_platform = 'android-14'
+  default_gcc_version   = '4.6'
+  default_clang_version = '3.1'
+  gcc_common_cflags  = %W(-ffunction-sections -funwind-tables -fstack-protector)
+  gcc_common_ldflags = %W()
 
   # 'ANDROID_STANDALONE_TOOLCHAIN' or 'ANDROID_NDK_HOME' must be set.
-  ANDROID_STANDALONE_TOOLCHAIN = ENV['ANDROID_STANDALONE_TOOLCHAIN']
-  ANDROID_NDK_HOME = ENV['ANDROID_NDK_HOME']
+  android_standalone_toolchain = ENV['ANDROID_STANDALONE_TOOLCHAIN']
+  android_ndk_home = ENV['ANDROID_NDK_HOME']
 
-  ANDROID_TARGET_ARCH = ENV['ANDROID_TARGET_ARCH'] || DEFAULT_ANDROID_TARGET_ARCH
-  ANDROID_TARGET_ARCH_ABI = ENV['ANDROID_TARGET_ARCH_ABI'] || DEFAULT_ANDROID_TARGET_ARCH_ABI
-  ANDROID_TOOLCHAIN = ENV['ANDROID_TOOLCHAIN'] || DEFAULT_ANDROID_TOOLCHAIN
-  GCC_VERSION = ENV['GCC_VERSION'] || DEFAULT_GCC_VERSION
-  CLANG_VERSION = ENV['CLANG_VERSION'] || DEFAULT_CLANG_VERSION
+  android_target_arch = ENV['ANDROID_TARGET_ARCH'] || default_android_target_arch
+  android_target_arch_abi = ENV['ANDROID_TARGET_ARCH_ABI'] || default_android_target_arch_abi
+  android_toolchain = ENV['ANDROID_TOOLCHAIN'] || default_android_toolchain
+  gcc_version = ENV['GCC_VERSION'] || default_gcc_version
+  clang_version = ENV['CLANG_VERSION'] || default_clang_version
 
-  case ANDROID_TARGET_ARCH.downcase
+  case android_target_arch.downcase
   when 'arch-arm',  'arm'  then
     toolchain_prefix = 'arm-linux-androideabi-'
   when 'arch-x86',  'x86'  then
@@ -42,28 +42,28 @@ MRuby::Toolchain.new(:androideabi) do |conf|
     # Notify error.
   end
 
-  if ANDROID_STANDALONE_TOOLCHAIN == nil then
+  if android_standalone_toolchain == nil then
     case RUBY_PLATFORM
     when /cygwin|mswin|mingw|bccwin|wince|emx/i
-      HOST_PLATFORM = 'windows'
+      host_platform = 'windows'
     when /x86_64-darwin/i
-      HOST_PLATFORM = 'darwin-x86_64'
+      host_platform = 'darwin-x86_64'
     when /darwin/i
-      HOST_PLATFORM = 'darwin-x86'
+      host_platform = 'darwin-x86'
     when /x86_64-linux/i
-      HOST_PLATFORM = 'linux-x86_64'
+      host_platform = 'linux-x86_64'
     when /linux/i
-      HOST_PLATFORM = 'linux-x86'
+      host_platform = 'linux-x86'
     else
       # Unknown host platform
     end
 
-    ANDROID_TARGET_PLATFORM = ENV['ANDROID_TARGET_PLATFORM'] || DEFAULT_ANDROID_TARGET_PLATFORM
+    android_target_platform = ENV['ANDROID_TARGET_PLATFORM'] || default_android_target_platform
 
-    path_to_toolchain = ANDROID_NDK_HOME + '/toolchains/'
-    path_to_sysroot   = ANDROID_NDK_HOME + '/platforms/' + ANDROID_TARGET_PLATFORM
-    if ANDROID_TOOLCHAIN.downcase == 'gcc' then
-      case ANDROID_TARGET_ARCH.downcase
+    path_to_toolchain = android_ndk_home + '/toolchains/'
+    path_to_sysroot   = android_ndk_home + '/platforms/' + android_target_platform
+    if android_toolchain.downcase == 'gcc' then
+      case android_target_arch.downcase
       when 'arch-arm',  'arm'  then
         path_to_toolchain += 'arm-linux-androideabi-'
         path_to_sysroot   += '/arch-arm'
@@ -76,43 +76,43 @@ MRuby::Toolchain.new(:androideabi) do |conf|
       else
         # Any other architecture are not supported by Android NDK.
       end
-      path_to_toolchain += GCC_VERSION + '/prebuilt/' + HOST_PLATFORM
+      path_to_toolchain += gcc_version + '/prebuilt/' + host_platform
     else
-      path_to_toolchain += 'llvm-' + CLANG_VERSION + '/prebuilt/' + HOST_PLATFORM
+      path_to_toolchain += 'llvm-' + clang_version + '/prebuilt/' + host_platform
     end
   else
-    path_to_toolchain = ANDROID_STANDALONE_TOOLCHAIN
-    path_to_sysroot   = ANDROID_STANDALONE_TOOLCHAIN + '/sysroot'
+    path_to_toolchain = android_standalone_toolchain
+    path_to_sysroot   = android_standalone_toolchain + '/sysroot'
   end
 
-  SYSROOT = path_to_sysroot
+  sysroot = path_to_sysroot
 
-  case ANDROID_TARGET_ARCH.downcase
+  case android_target_arch.downcase
   when 'arch-arm',  'arm'  then
-    if ANDROID_TARGET_ARCH_ABI.downcase == 'armeabi-v7a' then
-      ARCH_CFLAGS  = %W(-march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16)
-      ARCH_LDFLAGS = %W(-march=armv7-a -Wl,--fix-cortex-a8)
+    if android_target_arch_abi.downcase == 'armeabi-v7a' then
+      arch_cflags  = %W(-march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16)
+      arch_ldflags = %W(-march=armv7-a -Wl,--fix-cortex-a8)
     else
-      ARCH_CFLAGS  = %W(-march=armv5te -mtune=xscale -msoft-float)
-      ARCH_LDFLAGS = %W()
+      arch_cflags  = %W(-march=armv5te -mtune=xscale -msoft-float)
+      arch_ldflags = %W()
     end
   when 'arch-x86',  'x86'  then
-    ARCH_CFLAGS  = %W()
-    ARCH_LDFLAGS = %W()
+    arch_cflags  = %W()
+    arch_ldflags = %W()
   when 'arch-mips', 'mips' then
-    ARCH_CFLAGS  = %W(-fpic -fno-strict-aliasing -finline-functions -fmessage-length=0 -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers)
-    ARCH_LDFLAGS = %W()
+    arch_cflags  = %W(-fpic -fno-strict-aliasing -finline-functions -fmessage-length=0 -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers)
+    arch_ldflags = %W()
   else
     # Notify error
   end
 
-  case ANDROID_TOOLCHAIN.downcase
+  case android_toolchain.downcase
   when 'gcc' then
-    ANDROID_CC = path_to_toolchain + '/bin/' + toolchain_prefix + 'gcc'
-    ANDROID_LD = path_to_toolchain + '/bin/' + toolchain_prefix + 'gcc'
-    ANDROID_AR = path_to_toolchain + '/bin/' + toolchain_prefix + 'ar'
-    ANDROID_CFLAGS  = GCC_COMMON_CFLAGS  + %W(-D__android__ -mandroid --sysroot="#{SYSROOT}") + ARCH_CFLAGS
-    ANDROID_LDFLAGS = GCC_COMMON_LDFLAGS + %W(-D__android__ -mandroid --sysroot="#{SYSROOT}") + ARCH_LDFLAGS
+    android_cc = path_to_toolchain + '/bin/' + toolchain_prefix + 'gcc'
+    android_ld = path_to_toolchain + '/bin/' + toolchain_prefix + 'gcc'
+    android_ar = path_to_toolchain + '/bin/' + toolchain_prefix + 'ar'
+    android_cflags  = gcc_common_cflags  + %W(-D__android__ -mandroid --sysroot="#{sysroot}") + arch_cflags
+    android_ldflags = gcc_common_ldflags + %W(-D__android__ -mandroid --sysroot="#{sysroot}") + arch_ldflags
   when 'clang' then
     # clang is not supported yet.
   when 'clang31', 'clang3.1' then
@@ -123,10 +123,10 @@ MRuby::Toolchain.new(:androideabi) do |conf|
   end
 
   [conf.cc, conf.cxx, conf.objc, conf.asm].each do |cc|
-    cc.command = ENV['CC'] || ANDROID_CC
-    cc.flags = [ENV['CFLAGS'] || ANDROID_CFLAGS]
+    cc.command = ENV['CC'] || android_cc
+    cc.flags = [ENV['CFLAGS'] || android_cflags]
   end
-  conf.linker.command = ENV['LD'] || ANDROID_LD
-  conf.linker.flags = [ENV['LDFLAGS'] || ANDROID_LDFLAGS]
-  conf.archiver.command = ENV['AR'] || ANDROID_AR
+  conf.linker.command = ENV['LD'] || android_ld
+  conf.linker.flags = [ENV['LDFLAGS'] || android_ldflags]
+  conf.archiver.command = ENV['AR'] || android_ar
 end
